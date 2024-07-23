@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "backend",
+			"name": "backend"
+		},
+		{
+			"path": "frontend",
+			"name": "frontend"
+		},
+		{
+			"path": ".",
+			"name": "root"
+		},
+		{
+			"path": "../pkit"
+		}
+	],
+	"settings": {
+		// Set the Python interpreter globally, so VS Code stops complaining about invalid interpreter on other folders
+		// Also fix the Ruff extension
+
+    // For Unix-based
+    // "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+
+    // For Windows
+		"python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python",
+	}
+}
