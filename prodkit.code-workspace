@@ -12,9 +12,6 @@
 			"path": ".",
 			"name": "root"
 		},
-		{
-			"path": "../pkit"
-		}
 	],
 	"settings": {
 		// Set the Python interpreter globally, so VS Code stops complaining about invalid interpreter on other folders
