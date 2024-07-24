@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.infra.kit.enums import Environment
 
+# from app.infra.kit.jwk import JWKSFile
+
 env = Environment(os.getenv("PRODKIT_ENV", Environment.DEVELOPMENT))
 env_file = ".env.testing" if env == Environment.TESTING else ".env"
 
@@ -30,6 +32,19 @@ class Settings(BaseSettings):
     @property
     def app_name(self) -> str:
         return self.APP_NAME.lower()
+
+    # Application behaviours
+    API_PAGINATION_MAX_LIMIT: int = 100
+
+    # Password
+    PEPPER_SECRET: str | bytes = "super secret pepper"
+    SALT_SECRET: bytes | None = None  # Argon2 handles salt! Use custom salt carefully
+
+    # JWK
+    SECRET: str = "super secret jwt secret"
+    # JWKS: JWKSFile = Field(default="./.jwks.json")  # TODO: config it based on multi-tenancy
+    CURRENT_JWK_KID: str = f"{get_app_name}_dev"
+    WWW_AUTHENTICATE_REALM: str = f"{get_app_name}"
 
     model_config = SettingsConfigDict(
         env_prefix=f"{get_app_name}_",

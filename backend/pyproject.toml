@@ -21,6 +21,7 @@ arq = "^0.25.0"
 pydantic = "^2.8.2"
 pydantic-extra-types = "^2.9.0"
 pydantic-settings = "^2.3.4"
+argon2-cffi = "^23.1.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.0"
