@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run pre-commit hooks",
+      "type": "shell",
+      "command": "pre-commit run --all-files",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "detail": "Runs the pre-commit hooks on all files"
+    }
+  ]
+}

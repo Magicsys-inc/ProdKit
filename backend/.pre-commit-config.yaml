@@ -1,0 +1,57 @@
+repos:
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.27.0
+    hooks:
+      - id: commitizen
+        language_version: python3.12
+        stages:
+          - commit-msg
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.1
+    hooks:
+      # run the Ruff linter
+      - id: ruff
+        args:
+          - "--fix"
+      # run the Ruff formatter
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: Run mypy
+        entry: python -m mypy --ignore-missing-imports
+        exclude: config.py
+        language: python
+        language_version: python3.12
+        additional_dependencies: ["mypy"]
+        types:
+          - python
+        require_serial: true
+      # - id: pytest
+      #   name: Run tests with pytest
+      #   entry: python -m pytest
+      #   language: python
+      #   language_version: python3.12
+      #   additional_dependencies: ['pytest']
+      #   types:
+      #     - python
+      #   always_run: true
+      # - id: coverage-report
+      #   name: Generate coverage report
+      #   entry: python -m coverage report -m
+      #   language: python
+      #   language_version: python3.12
+      #   additional_dependencies: ['coverage']
+      #   types:
+      #     - python
+      #   always_run: true
