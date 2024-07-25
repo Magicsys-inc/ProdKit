@@ -154,10 +154,10 @@ class PhoneNotValidError(Exception):
         super().__init__(self.message)
 
 
-class MissingTenantOrUserIdError(ProdkitError):
+class MissingTenantOrAccountIdError(ProdkitError):
     def __init__(
         self,
-        message: str = "Tenant ID and User ID are required",
+        message: str = "Tenant ID and Account ID are required",
         status_code: int = 400,
     ) -> None:
         super().__init__(message, status_code)

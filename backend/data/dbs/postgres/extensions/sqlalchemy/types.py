@@ -38,7 +38,7 @@ class IntEnum(EnumType):
     cache_ok = True
 
 
-# TODO: Doesn't works correctly with Alembic. It seems that the issue is related to Alembic
+# TODO: Doesn't work correctly with Alembic. It seems that the issue is related to Alembic
 class StringEnum(EnumType):
     impl = sa.Unicode
     cache_ok = True
