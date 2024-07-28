@@ -1,5 +1,9 @@
 import os
+from typing import Literal
 
+from pydantic import (
+    PostgresDsn,
+)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.infra.kit.enums import Environment
@@ -46,13 +50,49 @@ class Settings(BaseSettings):
     CURRENT_JWK_KID: str = f"{get_app_name}_dev"
     WWW_AUTHENTICATE_REALM: str = f"{get_app_name}"
 
+    # Database
+    POSTGRES_USER: str = f"{get_app_name}"
+    POSTGRES_PWD: str = f"{get_app_name}"
+    POSTGRES_HOST: str = "127.0.0.1"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DATABASE: str = f"{get_app_name}_development"
+    DATABASE_POOL_SIZE: int = 5
+    DATABASE_SYNC_POOL_SIZE: int = 1  # Specific pool size for sync connection: since we only use it in OAuth2 router, don't waste resources.
+    DATABASE_POOL_RECYCLE_SECONDS: int = 600  # 10 minutes
+
+    SPECIAL_SCHEMA: str = "special_schema"
+
+    # Redis
+    REDIS_HOST: str = "127.0.0.1"
+    REDIS_PORT: int = 6379
+    # REDIS_DB_NUMBER: int = 0
+    # REDIS_PASSWORD: str = "secret"
+    REDIS_QUEUE_NAME: str = "arq:queue"  # default = "arq:queue"
+
     model_config = SettingsConfigDict(
         env_prefix=f"{get_app_name}_",
         env_file_encoding="utf-8",
-        case_sensitive=False,
+        case_sensitive=True,
         env_file=env_file,
         extra="allow",
     )
+
+    @property
+    def redis_url(self) -> str:
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
+
+    def get_postgres_dsn(
+        self, schema_name: str | None, driver: Literal["asyncpg", "psycopg2"]
+    ) -> str:
+        base_dsn: str = PostgresDsn.build(  # type: ignore
+            scheme=f"postgresql+{driver}",
+            username=self.POSTGRES_USER,
+            password=self.POSTGRES_PWD,
+            host=self.POSTGRES_HOST,
+            port=self.POSTGRES_PORT,
+            path=self.POSTGRES_DATABASE,
+        )
+        return f"{base_dsn}/{schema_name}" if schema_name else base_dsn
 
     def is_environment(self, environment: Environment) -> bool:
         return environment == self.ENV

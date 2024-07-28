@@ -1,6 +1,7 @@
 # Source: https://github.com/polarsource/polar/blob/main/server/polar/kit/db/models/base.py
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import TIMESTAMP, MetaData, inspect
@@ -26,8 +27,12 @@ class Model(DeclarativeBase):
 
     metadata = my_metadata
 
-    # def to_dict(self):
-    #     return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    def __table_args__(self) -> dict[str, Any]:
+        schema_name = self.__name__.split("_")[0]
+        return {"schema": schema_name}
+
+    def to_dict(self) -> dict[str, Any]:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class TimestampedModel(Model):
