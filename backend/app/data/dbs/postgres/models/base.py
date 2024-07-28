@@ -27,9 +27,18 @@ class Model(DeclarativeBase):
 
     metadata = my_metadata
 
-    def __table_args__(self) -> dict[str, Any]:
-        schema_name = self.__name__.split("_")[0]
-        return {"schema": schema_name}
+    schema: str  # Class attribute to hold schema name
+
+    # @classmethod
+    # def set_schema(cls, schema: str) -> None:
+    #     cls.schema = schema
+
+    @classmethod
+    def __table_args__(cls) -> dict[str, Any]:
+        if not cls.schema:
+            raise ValueError("schema is not set")
+        cls.schema = cls.__name__.lower() + "_schema"
+        return {"schema": cls.schema}
 
     def to_dict(self) -> dict[str, Any]:
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
