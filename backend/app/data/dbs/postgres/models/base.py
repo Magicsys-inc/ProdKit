@@ -34,7 +34,7 @@ class Model(DeclarativeBase):
     #     cls.schema = schema
 
     @classmethod
-    def __table_args__(cls) -> dict[str, Any]:
+    def __table_args__(cls) -> dict[str, Any]:  # type: ignore
         if not cls.schema:
             raise ValueError("schema is not set")
         cls.schema = cls.__name__.lower() + "_schema"
