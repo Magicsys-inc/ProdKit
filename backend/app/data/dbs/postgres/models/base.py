@@ -4,12 +4,34 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import TIMESTAMP, MetaData, inspect
+from sqlalchemy import TIMESTAMP, MetaData, Uuid, inspect
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedColumn, mapped_column
 
 from app.infra.kit.utils import generate_uuid, utc_now
 
-from ..extensions.sqlalchemy import PostgresUUID
+# __table_args__: dict[str, Any] | tuple[Any, ...]
+
+
+class TableArgsMeta(type):
+    def __new__(cls, name: str, bases: tuple[type], attrs: dict[str, Any]) -> type:
+        if "__table_args__" in attrs:
+            table_args = attrs["__table_args__"]
+            schema = attrs.get("schema", "")
+
+            if isinstance(table_args, dict):
+                table_args["schema"] = schema
+            elif isinstance(table_args, tuple):
+                if table_args and isinstance(table_args[-1], dict):
+                    table_args = table_args[:-1] + (
+                        dict(table_args[-1], schema=schema),
+                    )
+                else:
+                    table_args = table_args + ({"schema": schema},)
+
+            attrs["__table_args__"] = table_args
+
+        return super().__new__(cls, name, bases, attrs)
+
 
 my_metadata = MetaData(
     naming_convention={
@@ -29,19 +51,23 @@ class Model(DeclarativeBase):
 
     schema: str  # Class attribute to hold schema name
 
-    # @classmethod
-    # def set_schema(cls, schema: str) -> None:
-    #     cls.schema = schema
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if hasattr(cls, "__table_args__"):
+            table_args = cls.__table_args__
+            schema = getattr(cls, "schema", "")
 
-    @classmethod
-    def __table_args__(cls) -> dict[str, Any]:  # type: ignore
-        if not cls.schema:
-            raise ValueError("schema is not set")
-        cls.schema = cls.__name__.lower() + "_schema"
-        return {"schema": cls.schema}
+            if isinstance(table_args, dict):
+                table_args["schema"] = schema
+            elif isinstance(table_args, tuple):
+                if table_args and isinstance(table_args[-1], dict):
+                    table_args = table_args[:-1] + (
+                        dict(table_args[-1], schema=schema),
+                    )
+                else:
+                    table_args = table_args + ({"schema": schema},)
 
-    def to_dict(self) -> dict[str, Any]:
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+            cls.__table_args__ = table_args
 
 
 class TimestampedModel(Model):
@@ -69,7 +95,7 @@ class RecordModel(TimestampedModel):
     __abstract__ = True
 
     id: MappedColumn[UUID] = mapped_column(
-        PostgresUUID, primary_key=True, default=generate_uuid
+        Uuid, primary_key=True, default=generate_uuid
     )
 
     def __eq__(self, __value: object) -> bool:
