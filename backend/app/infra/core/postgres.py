@@ -17,28 +17,38 @@ from app.data.dbs.postgres.postgres import (
 from app.infra.config import settings
 
 ProcessName: TypeAlias = Literal["app", "worker", "script"]
+SchemaName: TypeAlias = str
+
+
+def get_schema_name(tenant_id: str | None) -> SchemaName:
+    if tenant_id is None:
+        return settings.SPECIAL_SCHEMA
+    else:
+        return settings.TENANT_SCHEMA.format(tenant_id)
 
 
 class DatabaseEngine:
     @staticmethod
     def create_async_engine(
-        process_name: ProcessName, tenant_id: str | None
+        process_name: ProcessName, schema_name: SchemaName
     ) -> AsyncEngine:
-        dsn = settings.get_postgres_dsn(tenant_id, "asyncpg")
+        dsn = settings.get_postgres_dsn(schema_name, "asyncpg")
         return EngineFactory.create_async_engine(
             dsn=dsn,
-            application_name=f"{settings.ENV.value}.{process_name}",
+            application_name=f"{settings.ENV.value}.{process_name}.{schema_name}",
             debug=settings.DEBUG,
             pool_size=settings.DATABASE_POOL_SIZE,
             pool_recycle=settings.DATABASE_POOL_RECYCLE_SECONDS,
         )
 
     @staticmethod
-    def create_sync_engine(process_name: ProcessName, tenant_id: str | None) -> Engine:
-        dsn = settings.get_postgres_dsn(tenant_id, "psycopg2")
+    def create_sync_engine(
+        process_name: ProcessName, schema_name: SchemaName
+    ) -> Engine:
+        dsn = settings.get_postgres_dsn(schema_name, "psycopg2")
         return EngineFactory.create_sync_engine(
             dsn=dsn,
-            application_name=f"{settings.ENV.value}.{process_name}",
+            application_name=f"{settings.ENV.value}.{process_name}.{schema_name}",
             debug=settings.DEBUG,
             pool_size=settings.DATABASE_SYNC_POOL_SIZE,
             pool_recycle=settings.DATABASE_POOL_RECYCLE_SECONDS,
@@ -91,4 +101,5 @@ __all__ = [
     "SessionMakerFactory",
     "DatabaseSession",
     "sql",
+    "get_schema_name",
 ]
