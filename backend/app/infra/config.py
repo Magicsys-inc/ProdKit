@@ -40,6 +40,21 @@ class Settings(BaseSettings):
     # Application behaviours
     API_PAGINATION_MAX_LIMIT: int = 100
 
+    # JSON list of accepted CORS origins
+    CORS_ORIGINS: list[str] = []
+
+    ALLOWED_HOSTS: set[str] = {"127.0.0.1:3000", "localhost:3000"}
+
+    # Base URL for the backend. Used by generate_external_url to
+    # generate URLs to the backend accessible from the outside.
+    BASE_URL: str = "http://127.0.0.1:8000/api/v1"
+
+    # URL to frontend app.
+    # Update to ngrok domain or similar in case you want
+    # working Github badges in development.
+    FRONTEND_BASE_URL: str = "http://127.0.0.1:3000"
+    FRONTEND_DEFAULT_RETURN_PATH: str = "/feed"
+
     # Password
     PEPPER_SECRET: str | bytes = "super secret pepper"
     SALT_SECRET: bytes | None = None  # Argon2 handles salt! Use custom salt carefully
@@ -60,14 +75,16 @@ class Settings(BaseSettings):
     DATABASE_SYNC_POOL_SIZE: int = 1  # Specific pool size for sync connection: since we only use it in OAuth2 router, don't waste resources.
     DATABASE_POOL_RECYCLE_SECONDS: int = 600  # 10 minutes
 
-    SPECIAL_SCHEMA: str = "special_schema"
+    SPECIAL_SCHEMA: str = "special"
+    TENANT_SCHEMA: str = "tenant_{}"
 
     # Redis
     REDIS_HOST: str = "127.0.0.1"
     REDIS_PORT: int = 6379
     # REDIS_DB_NUMBER: int = 0
     # REDIS_PASSWORD: str = "secret"
-    REDIS_QUEUE_NAME: str = "arq:queue"  # default = "arq:queue"
+
+    DEFAULT_QUEUE_NAME: str = "arq:queue"
 
     model_config = SettingsConfigDict(
         env_prefix=f"{get_app_name}_",
@@ -108,6 +125,12 @@ class Settings(BaseSettings):
 
     def is_production(self) -> bool:
         return self.is_environment(Environment.PRODUCTION)
+
+    def generate_external_url(self, path: str) -> str:
+        return f"{self.BASE_URL}{path}"
+
+    def generate_frontend_url(self, path: str) -> str:
+        return f"{self.FRONTEND_BASE_URL}{path}"
 
 
 settings = Settings()

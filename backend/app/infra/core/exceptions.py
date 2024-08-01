@@ -1,7 +1,12 @@
 # Base source: https://github.com/polarsource/polar/blob/main/server/polar/kit/db/models/base.py
 
 from typing import Any, Literal, LiteralString, TypedDict
+from urllib.parse import urlencode
 
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, create_model
 from pydantic_core import ErrorDetails, InitErrorDetails, PydanticCustomError
 from pydantic_core import ValidationError as PydanticValidationError
@@ -154,10 +159,63 @@ class PhoneNotValidError(Exception):
         super().__init__(self.message)
 
 
-class MissingTenantOrAccountIdError(ProdkitError):
+class MissingTenantOrSubIdError(ProdkitError):
     def __init__(
         self,
-        message: str = "Tenant ID and Account ID are required",
+        message: str = "Tenant ID and Subject (Organization or User) ID are required",
         status_code: int = 400,
     ) -> None:
         super().__init__(message, status_code)
+
+
+###########################
+### Exception Handelers ###
+###########################
+
+
+async def prodkit_exception_handler(
+    request: Request, exc: ProdkitError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": type(exc).__name__, "detail": exc.message},
+        headers=exc.headers,
+    )
+
+
+async def request_validation_exception_handler(
+    request: Request, exc: RequestValidationError | ProdkitRequestValidationError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={"error": type(exc).__name__, "detail": jsonable_encoder(exc.errors())},
+    )
+
+
+async def prodkit_redirection_exception_handler(
+    request: Request, exc: ProdkitRedirectionError
+) -> RedirectResponse:
+    error_url_params = urlencode(
+        {
+            "message": exc.message,
+            "return_to": exc.return_to or settings.FRONTEND_DEFAULT_RETURN_PATH,
+        }
+    )
+    error_url = f"{settings.generate_frontend_url("/error")}?{error_url_params}"
+    return RedirectResponse(error_url, 303)
+
+
+def add_exception_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(
+        ProdkitRedirectionError,
+        prodkit_redirection_exception_handler,  # type: ignore
+    )
+    app.add_exception_handler(
+        RequestValidationError,
+        request_validation_exception_handler,  # type: ignore
+    )
+    app.add_exception_handler(
+        ProdkitRequestValidationError,
+        request_validation_exception_handler,  # type: ignore
+    )
+    app.add_exception_handler(ProdkitError, prodkit_exception_handler)  # type: ignore
