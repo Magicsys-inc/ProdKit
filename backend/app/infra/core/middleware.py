@@ -147,9 +147,8 @@ class TenantAwareMiddleware(BaseHTTPMiddleware):
         return response
 
     def get_tenant_id(self, headers: MutableHeaders, request: Request) -> str | None:
-        tenant_id: str | None = headers.get(
-            f"x-{settings.app_name}-tenant-id"
-        )  # TODO: Correct it based on the header naming pattern
+        # TODO: Correct it based on the header naming pattern
+        tenant_id = self.extract_tenant_from_header(headers, "tenant-id")
         if tenant_id:
             return tenant_id
 
@@ -163,6 +162,13 @@ class TenantAwareMiddleware(BaseHTTPMiddleware):
             return tenant_id
 
         return None
+
+    def extract_tenant_from_header(
+        self, headers: MutableHeaders, header_name: str
+    ) -> str | None:
+        # TODO: Correct it based on the header naming pattern
+        header_key = f"x-{settings.app_name}-{header_name}"
+        return headers.get(header_key)
 
     def extract_tenant_from_subdomain(self, request: Request) -> str | None:
         host = request.headers.get("host", "")
