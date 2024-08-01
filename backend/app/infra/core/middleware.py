@@ -148,36 +148,36 @@ class TenantAwareMiddleware(BaseHTTPMiddleware):
 
     def get_tenant_id(self, headers: MutableHeaders, request: Request) -> str | None:
         # TODO: Correct it based on the header naming pattern
-        tenant_id = self.extract_tenant_from_header(headers, "tenant-id")
+        tenant_id = self.extract_from_header(headers, "tenant-id")
         if tenant_id:
             return tenant_id
 
-        tenant_id = self.extract_tenant_from_subdomain(request)
+        tenant_id = self.extract_from_subdomain(request)
         if tenant_id:
             return tenant_id
 
         # Check URL path for tenant ID (assuming /tenant/{tenant_id}/... format)
-        tenant_id = self.extract_tenant_from_path(request)
+        tenant_id = self.extract_from_path(request)
         if tenant_id:
             return tenant_id
 
         return None
 
-    def extract_tenant_from_header(
+    def extract_from_header(
         self, headers: MutableHeaders, header_name: str
     ) -> str | None:
         # TODO: Correct it based on the header naming pattern
         header_key = f"x-{settings.app_name}-{header_name}"
         return headers.get(header_key)
 
-    def extract_tenant_from_subdomain(self, request: Request) -> str | None:
+    def extract_from_subdomain(self, request: Request) -> str | None:
         host = request.headers.get("host", "")
         parts = host.split(".")
         if len(parts) > 2:
             return parts[0]
         return None
 
-    def extract_tenant_from_path(self, request: Request) -> str | None:
+    def extract_from_path(self, request: Request) -> str | None:
         parsed_url = urlparse(request.url.path)
         parts = parsed_url.path.split("/")
         if len(parts) > 1 and parts[1]:
@@ -185,9 +185,8 @@ class TenantAwareMiddleware(BaseHTTPMiddleware):
         return None
 
     def get_sub_id(self, headers: MutableHeaders, request: Request) -> str | None:
-        sub_id: str | None = headers.get(
-            f"x-{settings.app_name}-sub-id"
-        )  # TODO: Correct it based on the header naming pattern
+        sub_id = self.extract_from_header(headers, "sub-id")
+        # TODO: Correct it based on the header naming pattern
         if sub_id:
             return sub_id
         return None
