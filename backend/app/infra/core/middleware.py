@@ -168,6 +168,7 @@ class TenantAwareMiddleware(BaseHTTPMiddleware):
         self, headers: MutableHeaders, header_name: str
     ) -> str | None:
         # TODO: Correct it based on the header naming pattern
+        # headers = Headers(scope=request.scope)  # Use Headers to get request headers
         header_key = f"x-{settings.app_name}-{header_name}"
         return headers.get(header_key)
 

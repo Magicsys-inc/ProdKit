@@ -60,7 +60,10 @@ class CORSMatcherMiddleware:
         method = scope["method"]
         headers = Headers(scope=scope)
         origin = headers.get("origin")
-        tenant_id = scope.get("tenant_id")  # Retrieve tenant_id from scope
+
+        # Retrieve tenant context from request state
+        tenant_context = scope.get("state", {}).get("tenant_context")
+        tenant_id = tenant_context.tenant_id if tenant_context else None
 
         if origin is None:
             await self.app(scope, receive, send)
