@@ -12,7 +12,7 @@ from app.infra.kit.cors import CORSConfig, CORSMatcherMiddleware, Scope
 
 def configure_cors(app: FastAPI) -> None:
     tenant_configs: dict[str, Sequence[CORSConfig]] = {}
-    default_configs: Sequence[CORSConfig] = []
+    default_configs: list[CORSConfig] = []
 
     # Default CORS configurations
     if settings.CORS_ORIGINS:
@@ -27,7 +27,7 @@ def configure_cors(app: FastAPI) -> None:
             allow_methods=["*"],  # TODO: Limit to common methods
             allow_headers=["*"],  # TODO: Limit to necessary headers
         )
-        default_configs = tuple(default_configs) + (prodkit_frontend_config,)
+        default_configs.append(prodkit_frontend_config)
 
     # External API calls CORS configuration
     api_config = CORSConfig(
@@ -37,7 +37,7 @@ def configure_cors(app: FastAPI) -> None:
         allow_methods=["*"],  # TODO: Limit to common methods
         allow_headers=["Authorization"],  # Allow Authorization header to pass tokens
     )
-    default_configs = tuple(default_configs) + (api_config,)
+    default_configs.append(api_config)
 
     # TODO: Make it being dynamic, rather than being hardcoded.
     tenant_configs = {
