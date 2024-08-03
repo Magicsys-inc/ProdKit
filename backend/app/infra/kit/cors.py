@@ -68,13 +68,13 @@ class CORSMatcherMiddleware:
 
         if tenant_id is None:
             # Use default configurations if no tenant ID
-            tenant_middlewares = self.default_middlewares
+            _middlewares = self.default_middlewares
         else:
-            tenant_middlewares = self.tenant_middlewares.get(
+            _middlewares = self.tenant_middlewares.get(
                 tenant_id, self.default_middlewares
             )
 
-        middleware = self._get_config_middleware(origin, scope, tenant_middlewares)
+        middleware = self._get_config_middleware(origin, scope, _middlewares)
         if middleware is None:
             await self.app(scope, receive, send)
             return
