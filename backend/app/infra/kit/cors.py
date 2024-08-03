@@ -15,7 +15,7 @@ class CORSMatcher(Protocol):
 class CORSConfig:
     matcher: CORSMatcher
     allow_origins: Sequence[str] = ()
-    allow_methods: Sequence[str] = ("GET",)  # TODO: Appropriate methods
+    allow_methods: Sequence[str] = ("GET",)
     allow_headers: Sequence[str] = ()
     allow_credentials: bool = False
     allow_origin_regex: str | None = None
@@ -40,7 +40,7 @@ class CORSMatcherMiddleware:
         self, app: ASGIApp, *, configs: dict[str, Sequence[CORSConfig]]
     ) -> None:
         self.app = app
-        self.config_middlewares = {
+        self.tenant_middlewares = {
             tenant_id: tuple(
                 (config, config.get_middleware(app)) for config in tenant_configs
             )
@@ -60,18 +60,17 @@ class CORSMatcherMiddleware:
         method = scope["method"]
         headers = Headers(scope=scope)
         origin = headers.get("origin")
+        tenant_id = scope.get("tenant_id")  # Retrieve tenant_id from scope
 
         if origin is None:
             await self.app(scope, receive, send)
             return
 
-        tenant_context = scope.get("state", {}).get("tenant_context")
-        if tenant_context is None:
-            # Use default configurations if no tenant context
+        if tenant_id is None:
+            # Use default configurations if no tenant ID
             tenant_middlewares = self.default_middlewares
         else:
-            tenant_id = tenant_context.tenant_id
-            tenant_middlewares = self.config_middlewares.get(
+            tenant_middlewares = self.tenant_middlewares.get(
                 tenant_id, self.default_middlewares
             )
 
@@ -90,9 +89,9 @@ class CORSMatcherMiddleware:
         self,
         origin: str,
         scope: Scope,
-        tenant_middlewares: Sequence[tuple[CORSConfig, CORSMiddleware]],
+        middlewares: Sequence[tuple[CORSConfig, CORSMiddleware]],
     ) -> CORSMiddleware | None:
-        for config, middleware in tenant_middlewares:
+        for config, middleware in middlewares:
             if config.matcher(origin, scope):
                 return middleware
         return None

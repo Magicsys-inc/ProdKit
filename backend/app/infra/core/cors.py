@@ -41,24 +41,24 @@ def configure_cors(app: FastAPI) -> None:
 
     # TODO: Make it being dynamic, rather than being hardcoded.
     tenant_configs = {
-        "tenant1": [
-            CORSConfig(
-                matcher=lambda origin, scope: origin in ["https://example1.com"],
-                allow_origins=["https://example1.com"],
-                allow_methods=["GET", "POST"],
-                allow_headers=["*"],
-                allow_credentials=True,
-            ),
-        ],
-        "tenant2": [
-            CORSConfig(
-                matcher=lambda origin, scope: origin in ["https://example2.com"],
-                allow_origins=["https://example2.com"],
-                allow_methods=["GET"],
-                allow_headers=["*"],
-                allow_credentials=False,
-            ),
-        ],
+        # f"tenant{tenant_id}": [
+        #     CORSConfig(
+        #         matcher=lambda origin, scope: origin in allowed_origins,
+        #         allow_origins=allowed_origins,
+        #         allow_methods=allowed_methods,
+        #         allow_headers=allowed_headers,
+        #         allow_credentials=allowed_credentials,
+        #     ),
+        # ],
+        # "tenant2": [
+        #     CORSConfig(
+        #         matcher=lambda origin, scope: origin in ["https://example2.com"],
+        #         allow_origins=["https://example2.com"],
+        #         allow_methods=["GET"],
+        #         allow_headers=["*"],
+        #         allow_credentials=False,
+        #     ),
+        # ],
         # ...
     }
 
